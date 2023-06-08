@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+    content="Towards Predicting Equilibrium Distributions for Molecular Systems with Deep Learning">
+  <meta name="keywords" content="Nerfies, D-NeRF, NeRF">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Towards Predicting Equilibrium Distributions for Molecular Systems with Deep Learning</title>
+
+  <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
+  <script src="https://3Dmol.org/build/3Dmol.ui-min.js"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.png">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+
+<body>
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title" style="display: inline; color:darkcyan;">
+              <span style="white-space: nowrap">Distributional</span>
+              <span style="white-space: nowrap"><img src="./static/images/icon.png" alt="G" style="display: inline; vertical-align: top; width: 3rem;">raphormer: </span></h1>
+            <h1 class="title is-1 publication-title" style="display: inline;">Towards Predicting Equilibrium Distributions for Molecular Systems with Deep Learning</h1>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">
+                Shuxin Zheng<sup>*†1</sup>,
+              </span>
+              <span class="author-block">
+                Jiyan He<sup>†1</sup>,
+              </span>
+              <span class="author-block">
+                Chang Liu<sup>*†1</sup>,
+              </span>
+              <span class="author-block">
+                Yu Shi<sup>†1</sup>,
+              </span>
+              <span class="author-block">
+                Ziheng Lu<sup>†1</sup>,
+              </span>
+              <span class="author-block">
+                Weitao Feng<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                Fusong Ju<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                Jiaxi Wang<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                Jianwei Zhu<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                Yaosen Min<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                He Zhang<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                Shidi Tang<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                Hongxia Hao<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                Peiran Jin<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                Chi Chen<sup>2</sup>,
+              </span>
+              <span class="author-block">
+                Frank Noé<sup>1</sup>,
+              </span>
+              <span class="author-block">
+                Haiguang Liu<sup>*†1</sup>,
+              </span>
+              <span class="author-block">
+                and
+                Tie-Yan Liu<sup>*1</sup>
+              </span>
+            </div>
+
+            <br>
+            <div class="is-size-5 publication-authors">
+              <sup>1</sup><span class="author-block">Microsoft Research AI4Science.</span>
+            </div>
+            <div class="is-size-5 publication-authors">
+              <sup>2</sup><span class="author-block">Microsoft Quantum.</span>
+            </div>
+
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <!-- PDF Link. -->
+                <span class="link-block">
+                  <a href="#" class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                    </span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <section class="section hero is-light">
+    <div class="container">
+
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <video id="replay-video" autoplay controls muted preload playsinline width="100%">
+            <source src="./static/videos/webdemo.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <section class="section">
+    <div class="container is-max-desktop">
+
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Advances in deep learning have greatly improved structure prediction of molecules. However, many macroscopic observations that are important for real-world applications are not functions of a single molecular structure, but rather determined from the equilibrium distribution of structures. Traditional methods for obtaining these distributions, such as molecular dynamics simulation, are computationally expensive and often intractable. In this paper, we introduce a novel deep learning framework, called Distributional Graphormer (DiG), in an attempt to predict the equilibrium distribution of molecular systems. Inspired by the annealing process in thermodynamics, DiG employs deep neural networks to transform a simple distribution towards the equilibrium distribution, conditioned on a descriptor of a molecular system, such as chemical graph or protein sequence. This framework enables efficiently generating diverse conformations and provides estimations of state densities. We demonstrate the performance of DiG on several molecular tasks, including protein conformation sampling, ligand structure sampling, catalyst-adsorbate sampling, and property-guided structure generation. DiG presents a significant advancement in methodology for statistically understanding molecular systems, opening up new research opportunities in molecular science.
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3">Protein conformation sampling and distribution in 2D subspace</h2>
+      <div class="content has-text-justified">
+        <p>
+          DiG generated structures for two proteins of SARS-CoV-2 viruses: the receptor binding domain (RBD) of the spike protein and the main protease (or 3CL protease). The contour lines show the distribution of millisecond molecular dynamics simulation results. Experimentally determined structures (from the protein databank) and the predicted structures by AlphaFold are shown in the 2D maps. DiG generated structures are mapped onto 2D maps as dots.
+        </p>
+        <p>
+          Slide the bar to check the conformational space coverage as more structures are being generated. 
+        </p>
+      </div>
+
+
+      <div class="columns is-centered">
+
+        <div class="column">
+          <div class="content">
+
+            <div class="columns is-vcentered interpolation-panel">
+              <div class="column interpolation-video-column">
+                <div id="interpolation-image-wrapper2">
+                  Loading...
+                </div>
+                <input class="slider is-fullwidth is-large is-info" id="interpolation-slider2" step="1" min="0"
+                  max="100" value="0" type="range">
+              </div>
+            </div>
+
+            <h3 class="title is-6 has-text-centered">structure distributions for RBD</h3>
+            <p style="color: gray; font-size: small;">
+              In the case of RBD, MD simulations reveal four clusters. Sliding the bar will reveal the distribution of DiG generated structures on this contour map. There is good coverage of the MD simulation structures in this 2D subspace. With 10,000 generated structures, the coverage ratio is about 72%. AlphaFold predicted structures are distributed in the lower right region. 
+            </p>
+
+          </div>
+        </div>
+
+        <div class="column">
+          <div class="content">
+
+            <div class="columns is-vcentered interpolation-panel">
+              <div class="column interpolation-video-column">
+                <div id="interpolation-image-wrapper">
+                  Loading...
+                </div>
+                <input class="slider is-fullwidth is-large is-info" id="interpolation-slider" step="1" min="0" max="100"
+                  value="0" type="range">
+              </div>
+            </div>
+
+            <h3 class="title is-6 has-text-centered">structure distributions for main protease (3CL protease)</h3>
+            <p style="color: gray; font-size: small;">
+              The structures from MD simulations are populated in three regions. DiG generated structures have good overlaps with the middle and lower regions. The conformation space around the top region is less covered by the present model, showing room for improvement. Note that AlphaFold predicted structures are concentrated in the middle region. 
+            </p>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <section class="hero is-small">
+
+    <div class="hero-body">
+
+      <div class="container is-max-desktop">
+        <h2 class="title is-3">Generating functional conformation states</h2>
+        <div class="content has-text-justified">
+          <p>
+            Many proteins have multiple metastable structures that are closely related to their functions.
+          </p>
+          <p>
+            Four proteins that have two distinguishable structures are shown to demonstrate DiG's capabilities in predicting diverse structures associated with different functional states.
+          </p>
+          <p>
+            Experimentally determined structures are shown as cylinder cartoons, DiG generated structures are superposed to these experimental structures in ribbon representation. Load 3D structures for interactive visualization.
+          </p>
+        </div>
+      </div>
+      <br>
+
+      <div class="container">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="item item-steve">
+            <h2 class="title is-5" style="text-align: center;margin: 1rem;">Adenylate kinase</h2>
+            <div class="row">
+              <div class="col-md-6 col-sm-6 my-auto">
+                <model-viewer ar="true" ar-modes="webxr scene-viewer quick-look"
+                  loading="lazy" reveal="manual" style="height: 500px; width: 100%;margin: 1rem;" camera-controls="true"
+                  touch-action="pan-y" shadow-intensity="0" exposure="0.8" src="./static/models/4ake.glb"
+                  poster="./static/images/poster_4ake.png"
+                  id="mesh-frog" ar-status="not-presenting"></model-viewer>
+                <div class="controls has-text-centered" style="margin-bottom: 10px;">
+                  <button class="btn btn-primary loads-model" data-controls="mesh-frog"
+                    data-action="load">Load 4ake Structure</button>
+                </div>
+                <!-- <p class="caption has-text-centered" title="1ake model">1ake model</p> -->
+              </div>
+              <div class="col-md-6 col-sm-6 my-auto">
+                <model-viewer ar="true" ar-modes="webxr scene-viewer quick-look"
+                  loading="lazy" reveal="manual" style="height: 500px; width: 100%;margin: 1rem;" camera-controls="true"
+                  touch-action="pan-y" shadow-intensity="0" exposure="0.8"
+                  src="./static/models/1ake.glb"
+                  poster="./static/images/poster_1ake.png"
+                  id="mesh-chick" ar-status="not-presenting"></model-viewer>
+                <div class="controls has-text-centered" style="margin-bottom: 10px;">
+                  <button class="btn btn-primary loads-model" data-controls="mesh-chick"
+                    data-action="load">Load 1ake Structure</button>
+                </div>
+                <!-- <p class="caption has-text-centered"
+                  title="1ake model">1ake model</p> -->
+              </div>
+            </div>
+
+          </div>
+          <div class="item item-chair-tp">
+            <h2 class="title is-5" style="text-align: center;margin: 1rem;">LmrP membrane protein</h2>
+
+            <div class="row">
+              <div class="col-md-6 col-sm-6 my-auto">
+                <model-viewer ar="true" ar-modes="webxr scene-viewer quick-look"
+                  loading="lazy" reveal="manual" style="height: 500px; width: 100%;margin: 1rem;" camera-controls="true"
+                  touch-action="pan-y" shadow-intensity="0" exposure="0.8" src="./static/models/closed.glb"
+                  poster="./static/images/poster_DEERAF.png"
+                  id="mesh-closed" ar-status="not-presenting"></model-viewer>
+                <div class="controls has-text-centered" style="margin-bottom: 10px;">
+                  <button class="btn btn-primary loads-model" data-controls="mesh-closed"
+                    data-action="load">Load DEER-AF Structure</button>
+                </div>
+              </div>
+              <div class="col-md-6 col-sm-6 my-auto">
+                <model-viewer ar="true" ar-modes="webxr scene-viewer quick-look"
+                  loading="lazy" reveal="manual" style="height: 500px; width: 100%;margin: 1rem;" camera-controls="true"
+                  touch-action="pan-y" shadow-intensity="0" exposure="0.8"
+                  src="./static/models/6t1z.glb"
+                  poster="./static/images/poster_6t1z.png"
+                  id="mesh-6t1z" ar-status="not-presenting"></model-viewer>
+                <div class="controls has-text-centered" style="margin-bottom: 10px;">
+                  <button class="btn btn-primary loads-model" data-controls="mesh-6t1z"
+                    data-action="load">Load 6t1z Structure</button>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+          <div class="item item-shiba">
+            <h2 class="title is-5" style="text-align: center;margin: 1rem;">Human B-Raf kinase</h2>
+
+            <div class="row">
+              <div class="col-md-6 col-sm-6 my-auto">
+                <model-viewer ar="true" ar-modes="webxr scene-viewer quick-look"
+                  loading="lazy" reveal="manual" style="height: 500px; width: 100%;margin: 1rem;" camera-controls="true"
+                  touch-action="pan-y" shadow-intensity="0" exposure="0.8" src="./static/models/6uan.glb"
+                  poster="./static/images/poster_6uan.png"
+                  id="mesh-6uan" ar-status="not-presenting"></model-viewer>
+                <div class="controls has-text-centered" style="margin-bottom: 10px;">
+                  <button class="btn btn-primary loads-model" data-controls="mesh-6uan"
+                    data-action="load">Load 6uan Structure</button>
+                </div>
+              </div>
+              <div class="col-md-6 col-sm-6 my-auto">
+                <model-viewer ar="true" ar-modes="webxr scene-viewer quick-look"
+                  loading="lazy" reveal="manual" style="height: 500px; width: 100%;margin: 1rem;" camera-controls="true"
+                  touch-action="pan-y" shadow-intensity="0" exposure="0.8"
+                  src="./static/models/3skc.glb"
+                  poster="./static/images/poster_3skc.png"
+                  id="mesh-3skc" ar-status="not-presenting"></model-viewer>
+                <div class="controls has-text-centered" style="margin-bottom: 10px;">
+                  <button class="btn btn-primary loads-model" data-controls="mesh-3skc"
+                    data-action="load">Load 3skc Structure</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="item item-fullbody">
+            <h2 class="title is-5" style="text-align: center;margin: 1rem;">D-Ribose binding protein</h2>
+
+            <div class="row">
+              <div class="col-md-6 col-sm-6 my-auto">
+                <model-viewer ar="true" ar-modes="webxr scene-viewer quick-look"
+                  loading="lazy" reveal="manual" style="height: 500px; width: 100%;margin: 1rem;" camera-controls="true"
+                  touch-action="pan-y" shadow-intensity="0" exposure="0.8" src="./static/models/2dri.glb"
+                  poster="./static/images/poster_2dri.png"
+                  id="mesh-2dri" ar-status="not-presenting"></model-viewer>
+                <div class="controls has-text-centered" style="margin-bottom: 10px;">
+                  <button class="btn btn-primary loads-model" data-controls="mesh-2dri"
+                    data-action="load">Load 2dri Structure</button>
+                </div>
+              </div>
+              <div class="col-md-6 col-sm-6 my-auto">
+                <model-viewer ar="true" ar-modes="webxr scene-viewer quick-look"
+                  loading="lazy" reveal="manual" style="height: 500px; width: 100%;margin: 1rem;" camera-controls="true"
+                  touch-action="pan-y" shadow-intensity="0" exposure="0.8"
+                  src="./static/models/1urp.glb"
+                  poster="./static/images/poster_1urp.png"
+                  id="mesh-1urp" ar-status="not-presenting"></model-viewer>
+                <div class="controls has-text-centered" style="margin-bottom: 10px;">
+                  <button class="btn btn-primary loads-model" data-controls="mesh-1urp"
+                    data-action="load">Load 1urp Structure</button>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="container is-max-desktop">
+        <div class="content has-text-justified">
+          <br>
+          <p style="color: gray; font-size: small;">
+            Experimentally determined structures corresponding to two function states are shown in cylinder cartoon representation (Blue vs Red colors). DiG generated structures (in thin ribbon representation) are superposed to the experimental structures. Use the mouse to drag the molecules for visualizations from different views.
+          </p>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <!-- Animation. -->
+      <h2 class="title is-3">Conformation transition pathway prediction </h2>
+      <div class="content has-text-justified">
+        <p>
+          DiG can generate plausible transition pathways that connect the two structures. Adenylate kinase and LmrP membrane protein both have two functional states, corresponding to open and closed conformations. Using interpolation approach, DiG generates pathways connecting open and closed states.
+        </p>
+      </div>
+
+      <div class="columns is-centered">
+
+        <div class="column is-full-width">
+          <video id="teaser" autoplay muted loop preload playsinline height="100%">
+            <source src="./static/videos/1ake.mp4"
+                    type="video/mp4">
+          </video>
+          <h2 class="title is-6 has-text-centered">Adenylate kinase</h2>
+        </div>
+
+        <div class="column is-full-width">
+          <video id="teaser" autoplay muted loop preload playsinline height="100%">
+            <source src="./static/videos/6t1z.mp4"
+                    type="video/mp4">
+          </video>
+          <h2 class="title is-6 has-text-centered">LmrP membrane protein</h2>
+        </div>
+
+      </div>
+      <!--/ Animation. -->
+
+      <div class="content has-text-justified">
+        <p style="color: gray; font-size: small;">
+          The open/closed structures are shown as semi-transparent ribbons, and the structures along the predicted pathways are shown as cartoons (each secondary structure component is colored differently for better visualizations).  
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container is-max-desktop">
+
+      <h2 class="title is-3">Ligand binding structure generation for given protein pocket</h2>
+      <h3 class="title is-4">Process of ligand generation</h3>
+      <div class="content has-text-justified" style="margin-bottom: 2rem;">
+        <p>
+          The following animations show the process of ligand structure generation. The atoms of ligands are shown as spheres, which gradually converge to their final positions, predicting the binding poses within given protein pockets.
+        </p>
+      </div>
+
+      <div class="columns is-centered">
+
+        <div class="column is-full-width">
+          <video id="teaser" autoplay muted loop preload playsinline height="100%">
+            <source src="./static/videos/Tyk2_movie_1080.mp4"
+                    type="video/mp4">
+          </video>
+          <br>
+          <div style="text-align: center;">
+            <h2 class="title is-6 has-text-centered" style="margin: 0 auto;display: inline;">Tyk2 binding with</h2>
+            <img src="./static/images/Tyk2lig.png" alt="Tyk2lig" style="width: 6rem;display: inline;">
+          </div>
+        </div>
+
+        <div class="column is-full-width">
+          <video id="teaser" autoplay muted loop preload playsinline height="100%">
+            <source src="./static/videos/p38_movie_1080.mp4"
+                    type="video/mp4">
+          </video>
+          <br>
+          <div style="text-align: center;">
+            <h2 class="title is-6 has-text-centered" style="margin: 0 auto;display: inline;">P38 binding with</h2>
+            <img src="./static/images/P38lig.png" alt="p38lig" style="width: 6rem;display: inline;">
+          </div>
+        </div>
+
+      </div>
+
+      <h3 class="title is-4">More examples of the predicted binding structures</h3>
+      <div class="content has-text-justified" style="margin-bottom: 2rem;">
+        <p>
+          The figures can be interactively visualized by manipulating the molecules with a mouse pointer. Scroll left or right for more examples. 
+        </p>
+      </div>
+
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item item-steve">
+
+          <div style="text-align: center;margin: 0.5rem">
+            <h2 class="title is-5 has-text-centered" style="margin: 0 auto;display: inline;">Tyk2 binding with</h2>
+            <img src="./static/images/ensemble_tyk2lig.png" alt="Tyk2lig" style="height: 4rem;display: inline;">
+          </div>
+          
+          <div id="container-01" class="mol-container" style="width: 100%; height:500px;"></div>
+          <script>
+            jQuery(async function () {
+              let element = $('#container-01');
+              let config = { defaultcolors: $3Dmol.rasmolElementColors, backgroundColor: 'white' };
+              let viewer = $3Dmol.createViewer(element, config);
+            
+              const loadPdbData = async (url) => {
+                return new Promise((resolve, reject) => {
+                  jQuery.ajax({
+                    url: url,
+                    success: (data) => resolve(data),
+                    error: (hdr, status, err) => reject(`Failed to load PDB ${url}: ${err}`),
+                  });
+                });
+              };
+            
+              const pdbUrls = [
+                './static/pdbs/Tyk2/Tyk2_protein.pdb',
+                './static/pdbs/Tyk2/ligand/ligand_1_mdpred.pdb',
+                './static/pdbs/Tyk2/ligand/ligand_2_mdpred.pdb',
+                './static/pdbs/Tyk2/ligand/ligand_3_mdpred.pdb',
+                './static/pdbs/Tyk2/ligand/ligand_4_mdpred.pdb',
+                './static/pdbs/Tyk2/ligand/ligand_5_mdpred.pdb',
+              ];
+            
+              try {
+                const pdbDataList = await Promise.all(pdbUrls.map((url) => loadPdbData(url)));
+            
+                pdbDataList.forEach((pdbData) => {
+                  viewer.addModel(pdbData, "pdb");
+                });
+            
+                viewer.setStyle({}, { stick: { radius: 0.4 } });
+                viewer.setStyle({ model: 0 }, { cartoon: { color: 'spectrum' } });
+                viewer.zoomTo();
+                viewer.render();
+                viewer.zoom(1.2, 1000);
+              } catch (error) {
+                console.error(error);
+              }
+            });
+
+          </script>
+
+        </div>
+        <div class="item item-chair-tp">
+
+          <div style="text-align: center;margin: 0.5rem">
+            <h2 class="title is-5 has-text-centered" style="margin: 0 auto;display: inline;">P38 binding with</h2>
+            <img src="./static/images/ensemble_p38lig.png" alt="p38lig" style="height: 4rem;display: inline;">
+          </div>
+
+          <div id="container-02" class="mol-container" style="width: 100%; height:500px;"></div>
+          <script>
+            jQuery(async function () {
+              let element = $('#container-02');
+              let config = { defaultcolors: $3Dmol.rasmolElementColors, backgroundColor: 'white' };
+              let viewer = $3Dmol.createViewer(element, config);
+            
+              const loadPdbData = async (url) => {
+                return new Promise((resolve, reject) => {
+                  jQuery.ajax({
+                    url: url,
+                    success: (data) => resolve(data),
+                    error: (hdr, status, err) => reject(`Failed to load PDB ${url}: ${err}`),
+                  });
+                });
+              };
+            
+              const pdbUrls = [
+                './static/pdbs/p38/p38_protein.pdb',
+                './static/pdbs/p38/ligand/ligand_1_mdpred.pdb',
+                './static/pdbs/p38/ligand/ligand_2_mdpred.pdb',
+                './static/pdbs/p38/ligand/ligand_3_mdpred.pdb',
+                './static/pdbs/p38/ligand/ligand_4_mdpred.pdb',
+                './static/pdbs/p38/ligand/ligand_5_mdpred.pdb',
+              ];
+            
+              try {
+                const pdbDataList = await Promise.all(pdbUrls.map((url) => loadPdbData(url)));
+            
+                pdbDataList.forEach((pdbData) => {
+                  viewer.addModel(pdbData, "pdb");
+                });
+            
+                viewer.setStyle({}, { stick: { radius: 0.4 } });
+                viewer.setStyle({ model: 0 }, { cartoon: { color: 'spectrum' } });
+                viewer.zoomTo();
+                viewer.render();
+                viewer.zoom(1.2, 1000);
+              } catch (error) {
+                console.error(error);
+              }
+            });
+
+          </script>
+
+        </div>
+        <div class="item item-shiba">
+
+          <div style="text-align: center;margin: 0.5rem">
+            <h2 class="title is-5 has-text-centered" style="margin: 0 auto;display: inline;">eg5 binding with</h2>
+            <img src="./static/images/ensemble_eg5lig.png" alt="eg5lig" style="height: 4rem;display: inline;">
+          </div>
+
+          <div id="container-03" class="mol-container" style="width: 100%; height:500px;"></div>
+          <script>
+            jQuery(async function () {
+              let element = $('#container-03');
+              let config = { defaultcolors: $3Dmol.rasmolElementColors, backgroundColor: 'white' };
+              let viewer = $3Dmol.createViewer(element, config);
+            
+              const loadPdbData = async (url) => {
+                return new Promise((resolve, reject) => {
+                  jQuery.ajax({
+                    url: url,
+                    success: (data) => resolve(data),
+                    error: (hdr, status, err) => reject(`Failed to load PDB ${url}: ${err}`),
+                  });
+                });
+              };
+            
+              const pdbUrls = [
+              './static/pdbs/eg5/3l9h_prepared.pdb',
+              './static/pdbs/eg5/ligand/ligand_1_mdpred.pdb',
+              './static/pdbs/eg5/ligand/ligand_2_mdpred.pdb',
+              './static/pdbs/eg5/ligand/ligand_3_mdpred.pdb',
+              './static/pdbs/eg5/ligand/ligand_4_mdpred.pdb',
+              './static/pdbs/eg5/ligand/ligand_5_mdpred.pdb',
+              ];
+            
+              try {
+                const pdbDataList = await Promise.all(pdbUrls.map((url) => loadPdbData(url)));
+            
+                pdbDataList.forEach((pdbData) => {
+                  viewer.addModel(pdbData, "pdb");
+                });
+            
+                viewer.setStyle({}, { stick: { radius: 0.4 } });
+                viewer.setStyle({ model: 0 }, { cartoon: { color: 'spectrum' } });
+                viewer.zoomTo();
+                viewer.render();
+                viewer.zoom(1.2, 1000);
+              } catch (error) {
+                console.error(error);
+              }
+            });
+          </script>
+
+
+        </div>
+        <div class="item item-fullbody">
+
+          <div style="text-align: center;margin: 0.5rem">
+            <h2 class="title is-5 has-text-centered" style="margin: 0 auto;display: inline;">Bace binding with</h2>
+            <img src="./static/images/ensemble_bacelig.png" alt="p38lig" style="height: 4rem;display: inline;">
+          </div>
+
+          <div id="container-04" class="mol-container" style="width: 100%; height:500px;"></div>
+          <script>
+            jQuery(async function () {
+              let element = $('#container-04');
+              let config = { defaultcolors: $3Dmol.rasmolElementColors, backgroundColor: 'white' };
+              let viewer = $3Dmol.createViewer(element, config);
+            
+              const loadPdbData = async (url) => {
+                return new Promise((resolve, reject) => {
+                  jQuery.ajax({
+                    url: url,
+                    success: (data) => resolve(data),
+                    error: (hdr, status, err) => reject(`Failed to load PDB ${url}: ${err}`),
+                  });
+                });
+              };
+            
+              const pdbUrls = [
+              './static/pdbs/Bace/Bace_protein.pdb',
+              './static/pdbs/Bace/ligand/ligand_1_mdpred.pdb',
+              './static/pdbs/Bace/ligand/ligand_2_mdpred.pdb',
+              './static/pdbs/Bace/ligand/ligand_3_mdpred.pdb',
+              './static/pdbs/Bace/ligand/ligand_4_mdpred.pdb',
+              './static/pdbs/Bace/ligand/ligand_5_mdpred.pdb',
+              ];
+            
+              try {
+                const pdbDataList = await Promise.all(pdbUrls.map((url) => loadPdbData(url)));
+            
+                pdbDataList.forEach((pdbData) => {
+                  viewer.addModel(pdbData, "pdb");
+                });
+            
+                viewer.setStyle({}, { stick: { radius: 0.4 } });
+                viewer.setStyle({ model: 0 }, { cartoon: { color: 'spectrum' } });
+                viewer.zoomTo();
+                viewer.render();
+                viewer.zoom(1.2, 1000);
+              } catch (error) {
+                console.error(error);
+              }
+            });
+          </script>
+
+
+        </div>
+      </div>
+
+
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container is-max-desktop">
+
+      <div class="container is-max-desktop" style="margin-bottom: 2rem;">
+        <h2 class="title is-3">Adsorbate configuration sampling on catalytic surfaces</h2>
+        <h3 class="title is-4">Stable adsorbate configuration sampling on catalytic surfaces</h3>
+        <div class="content has-text-justified">
+          <p>
+            Diffusion process of an acyl group on a stepped TiIr alloy surface. Multiple stable configurations of the acyl group are found on this surface. In the 3 adsorption configurations, the oxygen atom of the adsorbate stabilizes in 3 different sites, and the methyl has different orientations. In the left and right configurations, the oxygen atom resides between two Titanium atoms in the crossing the step of the catalyst surface. In the middle configuration, the oxygen atom resides between two adjacent Titanium atoms in the same height.
+          </p>
+        </div>
+      </div>
+
+
+      <div class="columns is-centered">
+
+        <div class="column">
+          <div class="content">
+            <img src="./static/images/gifs/catalyst_adsorbate_left_site.gif" alt="left" width="100%">
+          </div>
+        </div>
+
+        <div class="column">
+          <div class="content">
+            <img src="./static/images/gifs/catalyst_adsorbate_top_site.gif" alt="top" width="100%">
+          </div>
+        </div>
+
+        <div class="column">
+          <div class="content">
+            <img src="./static/images/gifs/catalyst_adsorbate_right_site.gif" alt="right" width="100%">
+          </div>
+        </div>
+      </div>
+
+      <div class="container is-max-desktop" style="margin-bottom: 2rem;">
+        <h3 class="title is-4">Interpolating for the transition path of adsorbates</h3>
+        <div class="content has-text-justified">
+          <p>
+            Interpolation for the transition path between adjacent stable configurations of an acyl group on a stepped TiIr alloy. The acyl group goes through a diffusion between different adsorption sites with near free rotation of the methyl group.
+          </p>
+        </div>
+      </div>
+
+      <div class="columns is-centered">
+        <div class="column">
+          <div class="content" style="width: 75%;margin: 0 auto;">
+            <img src="./static/images/gifs/catalyst_interpolation.gif" alt="bandgap03" style="display: inline;width: 80%;">
+            <img src="./static/images/legend.png" alt="legend" style="display: inline;width: 8%;">
+          </div>
+        </div>
+      </div>
+
+      <div class="container is-max-desktop" style="margin-bottom: 2rem;">
+        <h3 class="title is-4">Sampling the distribution of adsorbates on the catalytic surface</h3>
+        <div class="content has-text-justified">
+          <p>
+            Adsorption prediction results of single N and O atoms on catalyst surfaces, compared to DFT calculations. The probability distribution of adsorbate molecules on the corresponding catalyst surfaces is shown with the contour map. Drag the sliding bar to increase the number of samples of adsorbates on the catalytic surface.
+          </p>
+        </div>
+      </div>
+
+
+      <div class="container">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="item item-steve">
+            <h2 class="title is-5" style="text-align: center;margin: 1rem;">N adatom on TiC surface</h2>
+            <div style="width: 60%;margin: 0 auto;">
+              <div id="interpolation-image-wrapper-catalyst1">
+                Loading...
+              </div>
+              <input class="slider is-fullwidth is-large is-info" id="interpolation-slider-catalyst1" step="1" min="0" max="100"
+              value="0" type="range">
+            </div>
+          </div>
+          <div class="item item-chair-tp">
+            <h2 class="title is-5" style="text-align: center;margin: 1rem;">N adatom on Tc-Hf-Rh alloy surface</h2>
+            <div style="width: 60%;margin: 0 auto;">
+              <div id="interpolation-image-wrapper-catalyst2">
+                Loading...
+              </div>
+              <input class="slider is-fullwidth is-large is-info" id="interpolation-slider-catalyst2" step="1" min="0" max="100"
+                value="0" type="range">
+            </div>
+          </div>
+          <div class="item item-shiba">
+            <h2 class="title is-5" style="text-align: center;margin: 1rem;">N adatom on Al-Ta alloy surface</h2>
+            <div style="width: 60%;margin: 0 auto;">
+              <div id="interpolation-image-wrapper-catalyst3">
+                Loading...
+              </div>
+              <input class="slider is-fullwidth is-large is-info" id="interpolation-slider-catalyst3" step="1" min="0" max="100"
+              value="0" type="range">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+    </div>
+  </section>
+
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3">Property-guided structure generation (Inverse design)</h2>
+      <div class="content has-text-justified">
+        <p>
+          The following shows the diffusion process of carbon structures with the guidance of an electronic band gap predictor. Select different tabs to see the evolution process of typical carbon structures with different predicted band gaps. Note that multiple known carbon crystals are generated during the course including diamond and graphite, displaying significantly varied band gaps.
+        </p>
+      </div>
+
+      <div class="tabs is-centered">
+        <ul>
+          <li class="tab is-active" onclick="openTab(event,'BG0')"><a>Band Gap = 0 eV</a></li>
+          <li class="tab" onclick="openTab(event,'BG2')"><a>Band Gap = 2 eV</a></li>
+          <li class="tab" onclick="openTab(event,'BG4')"><a>Band Gap = 4 eV</a></li>
+        </ul>
+      </div>
+
+
+      <div class="container section">
+        <div id="BG0" class="content-tab" >
+          <div class="columns is-centered">
+
+            <div class="column" style="margin: 0%;padding: 0%;">
+              <div class="content">
+                <img src="./static/images/gifs/bandgap0-1-enlarged.gif" alt="bandgap01" width="100%">
+              </div>
+            </div>
+
+            <div class="column" style="margin: 0%;padding: 0%;">
+              <div class="content">
+                <img src="./static/images/gifs/bandgap0-2-enlarged.gif" alt="bandgap02" width="100%">
+              </div>
+            </div>
+
+            <div class="column" style="margin: 0%;padding: 0%;">
+              <div class="content">
+                <img src="./static/images/gifs/natoms6_bandgap0-enlarged.gif" alt="bandgap03" width="100%">
+              </div>
+            </div>
+          </div>
+          <p>Three examples of electronic bandgap-guided generation of carbon structures with a target bandgap value of 0 eV. The sampling starts from a random unit cell, with carbon atoms randomly spread around the center of the cell. Both the lattice vectors and positions of carbon atoms are denoised with score ODE, with bandgap predictor gradients towards the target bandgap. With target bandgap value 0, the model has a higher probability of generating structure close to graphite (the left structure).</p>
+        </div>
+
+        <div id="BG2" class="content-tab" style="display:none">
+          
+          <div class="columns is-centered">
+
+            <div class="column" style="margin: 0%;padding: 0%;">
+              <div class="content">
+                <img src="./static/images/gifs/natoms4_bandgap2_0_new-enlarged.gif" alt="bandgap01" width="100%">
+              </div>
+            </div>
+
+            <div class="column" style="margin: 0%;padding: 0%;">
+              <div class="content">
+                <img src="./static/images/gifs/natoms4_bandgap2_1_new-enlarged.gif" alt="bandgap02" width="100%">
+              </div>
+            </div>
+
+            <div class="column" style="margin: 0%;padding: 0%;">
+              <div class="content">
+                <img src="./static/images/gifs/natoms4_bandgap2_2_new-enlarged.gif" alt="bandgap03" width="100%">
+              </div>
+            </div>
+          </div>
+          <p>
+            Three examples of electronic bandgap-guided generation of carbon structures with a target bandgap value of 2 eV. The sampling starts from a random unit cell, with carbon atoms randomly spread around the center of the cell. Both the lattice vectors and positions of carbon atoms are denoised with score ODE, with bandgap predictor gradients towards the target bandgap.</p>
+        </div>
+        <div id="BG4" class="content-tab" style="display:none">
+          <div class="columns is-centered">
+
+            <div class="column" style="margin: 0%;padding: 0%;">
+              <div class="content">
+                <img src="./static/images/gifs/natoms4_bandgap4_0-enlarged.gif" alt="bandgap01" width="100%">
+              </div>
+            </div>
+
+            <div class="column" style="margin: 0%;padding: 0%;">
+              <div class="content">
+                <img src="./static/images/gifs/natoms4_bandgap4_1-enlarged.gif" alt="bandgap02" width="100%">
+              </div>
+            </div>
+
+            <div class="column" style="margin: 0%;padding: 0%;">
+              <div class="content">
+                <img src="./static/images/gifs/natoms4_bandgap4_2-enlarged.gif" alt="bandgap03" width="100%">
+              </div>
+            </div>
+          </div>
+          <p>
+            Three examples of electronic bandgap-guided generation of carbon structures with a target bandgap value of 4 eV. The sampling starts from a random unit cell, with carbon atoms randomly spread around the center of the cell. Both the lattice vectors and positions of carbon atoms are denoised with score ODE, with bandgap predictor gradients towards the target bandgap. With target bandgap value 4, the model can generate structures similar with diamonds (the left structure).</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Approach</h2>
+
+          <img src="./static/images/fig1b.png" alt="Description of the image" style="margin-bottom: 2rem;">
+
+          <div class="content has-text-justified">
+            <p>DiG attempts to predict the complicated equilibrium distribution of a given system by gradually transforming a simple distribution (e.g., a standard Gaussian) through the simulation of a predicted diffusion process that leads towards the equilibrium distribution. DiG employs <a href="https://github.com/microsoft/Graphormer"><span class="icon"><i class="fab fa-github"></i></span>Graphormer</a> as the deep learning backbone to predict the diffusion process, which has shown superior performance in processing molecular structures and generalizing across various molecular systems. Through the diffusion process, molecular structure samples are generated by a step-by-step refinement, which breaks down the complication of the equilibrium distribution. The samples are generated independently in parallel, which bypasses the need of very long simulation of sequential sampling methods like molecular dynamics simulation. Besides sampling, DiG can also provide the normalized density estimation for the equilibrium distribution by tracking the change of probability along the diffusion process. Training a DiG can be done using flexible types of sources, including simulation data such as molecular dynamics trajectories, as well as the energy functions (force fields) of molecular systems. In all, DiG is a flexible and efficient framework that can handle the microscopic statistics of different types of molecular systems and descriptors.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <footer class="footer">
+    <div class="container">
+      <div class="content has-text-centered">
+        <a class="icon-link" href="#">
+          <i class="fas fa-file-pdf"></i>
+        </a>
+      </div>
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content">
+            <p style="text-align: center;">
+              This page was adapted from this <a href="https://github.com/nerfies/nerfies.github.io">source code</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
+</html>
